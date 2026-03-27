@@ -1,43 +1,42 @@
 <template>
   <view class="container">
     <!-- 语言选择器 -->
-    <view class="language-selector" @click="openLanguageModal">
+    <view class="language-selector" @click="openLanguageModal" v-if="false">
       <view class="language-picker">
         <text class="current-language">{{ currentLanguage.name }}</text>
         <text class="picker-arrow">▼</text>
       </view>
     </view>
 
-      <!-- 计算方法选择区域 -->
-      <view class="method-selector">
-        <view class="select-item">
-          <text class="select-label">{{ $t('method.type.title') }}:</text>
-          <picker mode="selector" :range="typeOptions" :range-key="'label'" :model="selectedTypeIndex"
-                  @change="onTypeChange"
-                  style="flex: 1">
-            <view class="picker-display">
-              <text>{{ getTypeLabel(selectedType) }}</text>
-              <text class="picker-arrow">▼</text>
-            </view>
-          </picker>
-        </view>
-
-        <view class="select-item mt-10">
-          <text class="select-label">{{ $t('method.model.title') }}:</text>
-          <picker mode="selector" :range="modelOptions" :range-key="'label'" :model="selectedModelIndex"
-                  @change="onModelChange"
-                  style="flex: 1">
-            <view class="picker-display">
-              <text>{{ getModelLabel(selectedModel) }}</text>
-              <text class="picker-arrow">▼</text>
-            </view>
-          </picker>
-        </view>
+    <!-- 计算方法选择区域 -->
+    <view class="method-selector">
+      <view class="select-item">
+        <text class="select-label">{{ $t('method.type.title') }}:</text>
+        <picker mode="selector" :range="typeOptions" :range-key="'label'" :model="selectedTypeIndex"
+                @change="onTypeChange"
+                style="flex: 1">
+          <view class="picker-display">
+            <text>{{ getTypeLabel(selectedType) }}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
       </view>
 
-      <button class="upload-btn" @click="handleChooseFile" :disabled="isLoading">{{ $t('action.upload') }}</button>
-      <text class="file-name" v-if="fileName">{{ $t('tip.uploadTip') }}: {{ fileName }}</text>
+      <view class="select-item mt-10">
+        <text class="select-label">{{ $t('method.model.title') }}:</text>
+        <picker mode="selector" :range="modelOptions" :range-key="'label'" :model="selectedModelIndex"
+                @change="onModelChange"
+                style="flex: 1">
+          <view class="picker-display">
+            <text>{{ getModelLabel(selectedModel) }}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
     </view>
+
+    <button class="upload-btn" @click="handleChooseFile" :disabled="isLoading">{{ $t('action.upload') }}</button>
+    <text class="file-name" v-if="fileName">{{ $t('tip.uploadTip') }}: {{ fileName }}</text>
 
     <!-- 团队介绍组件 -->
     <team-intro :show="!hasResult" @start="onTeamIntroStart"/>
@@ -85,23 +84,25 @@
     <view style="padding: 10rpx; background: #eee; font-size: 24rpx; width: 100%; text-align: center;">
       当前状态: {{ connectionStatus }}
     </view>
-	<view class="result-container" style="padding: 30rpx;">
-	  <view style="background: #f8f9fa; border: 2rpx solid #dee2e6; padding: 40rpx; border-radius: 12rpx; text-align: center;">
-	    <text style="font-size: 32rpx; color: #333; font-weight: bold;">
-	      {{ displayResult }}
-	    </text>
-	  </view>
-	
-	  <view style="margin-top: 40rpx;">
-	    <button type="primary" @click="runScript" :disabled="remainingTime > 0">
-	      {{ remainingTime > 0 ? '分析中 (' + remainingTime + 's)' : '启动科研分析' }}
-	    </button>
-	    
-	    <button style="margin-top: 20rpx;" @click="fetchCloudResult">
-	      手动同步结果
-	    </button>
-	  </view>
-	</view>
+    <view class="result-container" style="padding: 30rpx;">
+      <view
+          style="background: #f8f9fa; border: 2rpx solid #dee2e6; padding: 40rpx; border-radius: 12rpx; text-align: center;">
+        <text style="font-size: 32rpx; color: #333; font-weight: bold;">
+          {{ displayResult }}
+        </text>
+      </view>
+
+      <view style="margin-top: 40rpx;">
+        <button type="primary" @click="runScript" :disabled="remainingTime > 0">
+          {{ remainingTime > 0 ? '分析中 (' + remainingTime + 's)' : '启动科研分析' }}
+        </button>
+
+        <button style="margin-top: 20rpx;" @click="fetchCloudResult">
+          手动同步结果
+        </button>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script>
@@ -138,8 +139,8 @@ export default {
     } = useFileHandler()
 
     return {
-	  debugStatus,
-	  debugData,
+      debugStatus,
+      debugData,
       fileName,
       isLoading,
       result,
@@ -154,174 +155,177 @@ export default {
 
   data() {
     return {
-        socket: null,
-        socketTask: null, // 建议使用专门的任务对象
-        serverIP: '192.168.1.124', // 提取 IP 方便显示和修改
-        connectionStatus: '未连接',
-        remainingTime: 0,
-        displayResult: '检测结果将在此显示...' 
+      socket: null,
+      socketTask: null, // 建议使用专门的任务对象
+      serverIP: '192.168.1.124', // 提取 IP 方便显示和修改
+      connectionStatus: '未连接',
+      remainingTime: 0,
+      displayResult: '检测结果将在此显示...'
     }
   },
 
   onLoad() {
-  this.initWebSocket();
+    this.initWebSocket();
   },
 
   methods: {
-	// 统一初始化方法
-	  initWebSocket() {
-	    this.connectionStatus = `正在连接 ${this.serverIP}...`;
-	    
-	    // 关键：在 App 端使用 uni.connectSocket 返回的任务对象进行管理
-	    this.socketTask = uni.connectSocket({
-	      url: `ws://${this.serverIP}:8765`,
-	      success: () => { console.log("Socket 接口调用成功"); }
-	    });
-	
-	    this.socketTask.onOpen(() => {
-	      this.connectionStatus = `已连接到: ${this.serverIP}`;
-	      uni.showToast({ title: "连接成功", icon: "success" });
-	    });
-	
-	    this.socketTask.onError((err) => {
-	      this.connectionStatus = "连接报错，请检查IP或防火墙";
-	      console.error("Socket错误:", err);
-	    });
-	
-	    this.socketTask.onClose(() => {
-	      this.connectionStatus = "连接已断开";
-	    });
-	
-	    this.socketTask.onMessage((msg) => {
-	      uni.showToast({ title: msg.data, icon: "none" });
-	    });
-	  },
-	
-	  // 发送指令
-	  sendControlCommand(cmd) {
-	    if (this.connectionStatus.indexOf('已连接') === -1) {
-	       uni.showToast({ title: "请先连接电脑", icon: "none" });
-	       this.initWebSocket(); // 尝试重连
-	       return;
-	    }
-	    
-	    uni.sendSocketMessage({
-	      data: cmd,
-	      fail: (err) => {
-	        uni.showToast({ title: "发送失败", icon: "none" });
-	        this.initWebSocket();
-	      }
-	    });
-	  },
+    // 统一初始化方法
+    initWebSocket() {
+      this.connectionStatus = `正在连接 ${this.serverIP}...`;
+
+      // 关键：在 App 端使用 uni.connectSocket 返回的任务对象进行管理
+      this.socketTask = uni.connectSocket({
+        url: `ws://${this.serverIP}:8765`,
+        success: () => {
+          console.log("Socket 接口调用成功");
+        }
+      });
+
+      this.socketTask.onOpen(() => {
+        this.connectionStatus = `已连接到: ${this.serverIP}`;
+        uni.showToast({title: "连接成功", icon: "success"});
+      });
+
+      this.socketTask.onError((err) => {
+        this.connectionStatus = "连接报错，请检查IP或防火墙";
+        console.error("Socket错误:", err);
+      });
+
+      this.socketTask.onClose(() => {
+        this.connectionStatus = "连接已断开";
+      });
+
+      this.socketTask.onMessage((msg) => {
+        uni.showToast({title: msg.data, icon: "none"});
+      });
+    },
+
+    // 发送指令
+    sendControlCommand(cmd) {
+      if (this.connectionStatus.indexOf('已连接') === -1) {
+        uni.showToast({title: "请先连接电脑", icon: "none"});
+        this.initWebSocket(); // 尝试重连
+        return;
+      }
+
+      uni.sendSocketMessage({
+        data: cmd,
+        fail: (err) => {
+          uni.showToast({title: "发送失败", icon: "none"});
+          this.initWebSocket();
+        }
+      });
+    },
     runScript() {
-        // 1. 启动 WebSocket 指令
-        this.sendControlCommand("run");
-        
-        // 2. 开启 5 分钟倒计时
-        this.remainingTime = 120; 
-        if (this.autoFetchTimer) clearInterval(this.autoFetchTimer);
-        
-        this.autoFetchTimer = setInterval(() => {
-            this.remainingTime--;
-            if (this.remainingTime <= 0) {
-                clearInterval(this.autoFetchTimer);
-                this.fetchCloudResult(); // 倒计时结束，自动读 CSV
+      // 1. 启动 WebSocket 指令
+      this.sendControlCommand("run");
+
+      // 2. 开启 5 分钟倒计时
+      this.remainingTime = 120;
+      if (this.autoFetchTimer) clearInterval(this.autoFetchTimer);
+
+      this.autoFetchTimer = setInterval(() => {
+        this.remainingTime--;
+        if (this.remainingTime <= 0) {
+          clearInterval(this.autoFetchTimer);
+          this.fetchCloudResult(); // 倒计时结束，自动读 CSV
+        }
+      }, 1000);
+    },
+
+    // 手动获取按键调用此方法
+    manualFetch() {
+      this.fetchCloudResult();
+    },
+
+    // 统一的读取函数
+    async fetchCloudResult() {
+      uni.request({
+        url: 'http://43.138.48.175/result.csv?t=' + new Date().getTime(),
+        method: 'GET',
+        success: (res) => {
+          if (res.statusCode === 200 && res.data) {
+            // 1. 拆分行
+            const lines = res.data.trim().split(/\r?\n/);
+
+            // 2. 只要行数大于1，就取第二行
+            if (lines.length >= 2) {
+              const d = lines[1].split(','); // d[0]=1234.38, d[1]=14, d[2]=13.0, d[3]=ug/ml
+
+              // 3. 直接拼成一句话显示
+              this.displayResult = `浓度: ${d[2]} ${d[3]} (峰位: ${d[0]}, 强度: ${d[1]})`;
+
+              uni.showToast({title: '同步成功', icon: 'success'});
+            } else {
+              this.displayResult = '数据计算中，请稍后...';
             }
-        }, 1000);
-    },
-    
-      // 手动获取按键调用此方法
-      manualFetch() {
-        this.fetchCloudResult();
-      },
-    
-      // 统一的读取函数
-      async fetchCloudResult() {
-    uni.request({
-    url: 'http://43.138.48.175/result.csv?t=' + new Date().getTime(),
-    method: 'GET',
-    success: (res) => {
-      if (res.statusCode === 200 && res.data) {
-        // 1. 拆分行
-        const lines = res.data.trim().split(/\r?\n/);
-        
-        // 2. 只要行数大于1，就取第二行
-        if (lines.length >= 2) {
-          const d = lines[1].split(','); // d[0]=1234.38, d[1]=14, d[2]=13.0, d[3]=ug/ml
-          
-          // 3. 直接拼成一句话显示
-          this.displayResult = `浓度: ${d[2]} ${d[3]} (峰位: ${d[0]}, 强度: ${d[1]})`;
-          
-          uni.showToast({ title: '同步成功', icon: 'success' });
-        } else {
-          this.displayResult = '数据计算中，请稍后...';
-        }
-      }
-    },
-    fail: () => {
-      uni.showToast({ title: '网络连接失败', icon: 'none' });
-     }
-    });
-  },
-    
-      // 解析 CSV
-      parseCsv(csvContent) {
-        const lines = csvContent.split('\n');
-        if (lines.length > 0) {
-          const row = lines[0].split(',');
-          // 映射到页面显示的变量
-          this.result = row[0]; 
-          this.calculationData = row[1];
-          this.fileName = "同步自云端: Quantitation_1.csv";
-        }
-      },
-    
-      shutdownPC() {
-        uni.showModal({
-          title: '确认操作',
-          content: '确定要远程关闭科研电脑吗？',
-          success: (res) => {
-              // 1. 确保拿到的是字符串并清理前后空格/换行
-              let rawData = res.data || "";
-              if (typeof rawData !== 'string') rawData = JSON.stringify(rawData);
-              
-              // 2. 按换行符切分，并过滤掉空行（防止文件末尾有回车）
-              const lines = rawData.split(/\r?\n/).filter(line => line.trim() !== "");
-              
-              console.log("解析出的行数:", lines.length);
-              console.log("数据行内容:", lines[1]);
-          
-              // 3. 必须有至少两行（标题+数据）
-              if (lines.length >= 2) {
-                  const dataValues = lines[1].split(','); 
-          
-                  // 4. 严格对应 CSV 列顺序进行赋值
-                  this.peakPosition = dataValues[0]; // 1234.38
-                  this.intensity    = dataValues[1]; // 14
-                  this.result       = dataValues[2]; // 13.0 (对应 Concentration)
-                  this.unit         = dataValues[3]; // ug/ml
-                  
-                  uni.showToast({ title: '同步成功', icon: 'success' });
-              } else {
-                  uni.showToast({ title: '暂无定量结果', icon: 'none' });
-              }
           }
-        });
-      },
-    
-      reconnect() {
-        this.socket = uni.connectSocket({
-          url: 'ws://192.168.1.128:8765',
-          complete: () => {}
-        });
+        },
+        fail: () => {
+          uni.showToast({title: '网络连接失败', icon: 'none'});
+        }
+      });
+    },
+
+    // 解析 CSV
+    parseCsv(csvContent) {
+      const lines = csvContent.split('\n');
+      if (lines.length > 0) {
+        const row = lines[0].split(',');
+        // 映射到页面显示的变量
+        this.result = row[0];
+        this.calculationData = row[1];
+        this.fileName = "同步自云端: Quantitation_1.csv";
       }
+    },
+
+    shutdownPC() {
+      uni.showModal({
+        title: '确认操作',
+        content: '确定要远程关闭科研电脑吗？',
+        success: (res) => {
+          // 1. 确保拿到的是字符串并清理前后空格/换行
+          let rawData = res.data || "";
+          if (typeof rawData !== 'string') rawData = JSON.stringify(rawData);
+
+          // 2. 按换行符切分，并过滤掉空行（防止文件末尾有回车）
+          const lines = rawData.split(/\r?\n/).filter(line => line.trim() !== "");
+
+          console.log("解析出的行数:", lines.length);
+          console.log("数据行内容:", lines[1]);
+
+          // 3. 必须有至少两行（标题+数据）
+          if (lines.length >= 2) {
+            const dataValues = lines[1].split(',');
+
+            // 4. 严格对应 CSV 列顺序进行赋值
+            this.peakPosition = dataValues[0]; // 1234.38
+            this.intensity = dataValues[1]; // 14
+            this.result = dataValues[2]; // 13.0 (对应 Concentration)
+            this.unit = dataValues[3]; // ug/ml
+
+            uni.showToast({title: '同步成功', icon: 'success'});
+          } else {
+            uni.showToast({title: '暂无定量结果', icon: 'none'});
+          }
+        }
+      });
+    },
+
+    reconnect() {
+      this.socket = uni.connectSocket({
+        url: 'ws://192.168.1.128:8765',
+        complete: () => {
+        }
+      });
+    }
   }
 }
 </script>
 
 <style scoped>
 .container {
-  min-height: 100vh;
+  //min-height: 100vh;
   background-color: #f5f7fa;
   padding: 40rpx 30rpx;
   box-sizing: border-box;
